@@ -1,9 +1,7 @@
 package validalogin.servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -18,17 +16,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import validalogin.beans.*;
+import validalogin.beans.BeanError;
+import validalogin.beans.BeanUsuario;
 
-@WebServlet(name="ValidaLogin",urlPatterns="/validar")
+@WebServlet(name="RegistraLogin",urlPatterns="/registrar")
 @SuppressWarnings("serial")
-public class ValidaLogin extends HttpServlet{
+public class RegistraLogin extends HttpServlet{
 	
 	private DataSource dsBdValidaLogin;
 	private BeanError error;
 	private BeanUsuario usuario;
 	
-	public ValidaLogin() {
+	public RegistraLogin() {
         super();
     }
 
@@ -48,29 +47,25 @@ public class ValidaLogin extends HttpServlet{
 	}
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String login = request.getParameter("login");
-		String clave = request.getParameter("clave");
-		String nombre="";
-		error = null;
 		Connection conexion = null;
 		Statement st = null;
-		ResultSet rs = null;
+		String login = request.getParameter("login");
+		String clave = request.getParameter("clave");
+		String nombre = request.getParameter("nombre");
+		error = null;
+		usuario = new BeanUsuario();
+		usuario.setClave(clave);
+		usuario.setLogin(login);
+		usuario.setNombre(nombre);
+		request.setAttribute("usuario", usuario);
 		try {
 			conexion = dsBdValidaLogin.getConnection();
 			st = conexion.createStatement();
-			rs = st.executeQuery("select login,clave,nombre from login where login = '"+login+"'");
-			if (rs.next()) {
-				if (!rs.getString("clave").equals(clave)) {
-					error = new BeanError(2,"La clave no coincide.");
-				} else{
-					nombre = rs.getString("nombre");
-				}
-			}
-			else {
-				error = new BeanError(3,"El login no existe.");
-			}
+			String insert = "INSERT INTO login (login,clave,nombre) VALUES ('" + usuario.getLogin() + "','" +
+	                usuario.getClave() + "','" + usuario.getNombre() + "')";
+	        st.executeUpdate(insert);
 		} catch (SQLException e) {
-			error = new BeanError(1,"Error en conexión a base de datos");
+			error = new BeanError(e.getErrorCode(),e.getMessage());
 		}
 		if (st != null){
 			try {
@@ -80,19 +75,13 @@ public class ValidaLogin extends HttpServlet{
 			}
 		}
 		if (error==null){
-			usuario = new BeanUsuario();
-			usuario.setClave(clave);
-			usuario.setLogin(login);
-			usuario.setNombre(nombre);
-			request.setAttribute("usuario", usuario);
-			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/verUsuario.jsp");
-		    rd.forward(request,response);
-		
+			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/verRegistro.jsp");
+			rd.forward(request,response);
 		} else {
 			request.setAttribute("error", error);
 			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/gesError.jsp");
 		    rd.forward(request,response);
 		}
-	}
 	
+	}
 }

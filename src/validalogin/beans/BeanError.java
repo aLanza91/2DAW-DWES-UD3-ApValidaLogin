@@ -15,6 +15,6 @@ public class BeanError extends Exception implements Serializable{
 	}
 	
 	public String toString(){
-		return this.codigoError+", "+this.mensajeError;
+		return "Código error: "+this.codigoError+", "+this.mensajeError;
 	}
 }
