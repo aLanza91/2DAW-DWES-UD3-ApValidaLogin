@@ -20,18 +20,38 @@ import javax.sql.DataSource;
 
 import validalogin.beans.*;
 
+/**
+ * Servlet que encapsula el proceso de login.
+ */
 @WebServlet(name="ValidaLogin",urlPatterns="/validar")
 @SuppressWarnings("serial")
 public class ValidaLogin extends HttpServlet{
 	
+	/**
+	 * Información de la Base de datos
+	 */
 	private DataSource dsBdValidaLogin;
+	
+	/**
+	 * Información del posible error generado
+	 */
 	private BeanError error;
+	
+	/**
+	 * Información del usuario
+	 */
 	private BeanUsuario usuario;
 	
+	/**
+	 * Constructor por defecto
+	 */
 	public ValidaLogin() {
         super();
     }
 
+	/**
+	 * Inicializa el servlet y la fuente de datos 
+	 */
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
     	InitialContext initCtx = null;
@@ -43,10 +63,16 @@ public class ValidaLogin extends HttpServlet{
     	}
 	}
 	
+	/**
+	 * Recibe las peticiones GET y las pasa al método doPost
+	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request,response);
 	}
 	
+	/**
+	 * Recibe las peticiones POST, realiza la consulta a la bb.dd. y devuelve una respuesta
+	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String login = request.getParameter("login");
 		String clave = request.getParameter("clave");
@@ -59,7 +85,9 @@ public class ValidaLogin extends HttpServlet{
 			conexion = dsBdValidaLogin.getConnection();
 			st = conexion.createStatement();
 			rs = st.executeQuery("select login,clave,nombre from login where login = '"+login+"'");
+			//Se comprueba si existe el login
 			if (rs.next()) {
+				//Se comprueba si no coincide la clave y si es así se obtiene el nombre
 				if (!rs.getString("clave").equals(clave)) {
 					error = new BeanError(2,"La clave no coincide.");
 				} else{
@@ -79,6 +107,7 @@ public class ValidaLogin extends HttpServlet{
 				error = new BeanError(4,"Error al cerrar conexión a base de datos");
 			}
 		}
+		//Se comprueba si se ha producido algún error para devolver la imforción pertinente
 		if (error==null){
 			usuario = new BeanUsuario();
 			usuario.setClave(clave);

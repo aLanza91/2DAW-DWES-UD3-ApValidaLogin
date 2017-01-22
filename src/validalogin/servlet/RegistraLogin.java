@@ -19,18 +19,38 @@ import javax.sql.DataSource;
 import validalogin.beans.BeanError;
 import validalogin.beans.BeanUsuario;
 
+/**
+ * Servlet que encapsula el proceso de registro.
+ */
 @WebServlet(name="RegistraLogin",urlPatterns="/registrar")
 @SuppressWarnings("serial")
 public class RegistraLogin extends HttpServlet{
 	
+	/**
+	 * Información de la Base de datos
+	 */
 	private DataSource dsBdValidaLogin;
+	
+	/**
+	 * Información del posible error generado
+	 */
 	private BeanError error;
+	
+	/**
+	 * Información del usuario
+	 */
 	private BeanUsuario usuario;
 	
+	/**
+	 * Constructor por defecto
+	 */
 	public RegistraLogin() {
         super();
     }
 
+	/**
+	 * Inicializa el servlet y la fuente de datos 
+	 */
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
     	InitialContext initCtx = null;
@@ -42,10 +62,16 @@ public class RegistraLogin extends HttpServlet{
     	}
 	}
 	
+	/**
+	 * Recibe las peticiones GET y las pasa al método doPost
+	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request,response);
 	}
 	
+	/**
+	 * Recibe las peticiones POST, realiza la consulta a la bb.dd. y devuelve una respuesta
+	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Connection conexion = null;
 		Statement st = null;
@@ -74,6 +100,7 @@ public class RegistraLogin extends HttpServlet{
 				error = new BeanError(4,"Error al cerrar conexión a base de datos");
 			}
 		}
+		//Se comprueba si se ha producido algún error para devolver la imforción pertinente
 		if (error==null){
 			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/verRegistro.jsp");
 			rd.forward(request,response);
