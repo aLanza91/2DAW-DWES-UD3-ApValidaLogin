@@ -8,13 +8,9 @@
 <title>Ver usuario</title>
 </head>
 <body>
-	<!--Por qué no funciona ?-->
-	<jsp:useBean id="usuario2" scope="page" class="validalogin.beans.BeanUsuario" />
-	<%usuario2 = (BeanUsuario) request.getAttribute("usuario"); %>
-	<p>Nombre del usuario: <jsp:getProperty name="usuario2" property="nombre" /></p>
-	
-	<% BeanUsuario usuario = (BeanUsuario) request.getAttribute("usuario"); %>
-	<p>Nombre del usuario: <%=usuario.getNombre() %></p>
+	<jsp:useBean id="usuario" scope="request" class="validalogin.beans.BeanUsuario" />
+	<%usuario = (BeanUsuario) request.getAttribute("usuario"); %>
+	<p>Nombre del usuario: <jsp:getProperty name="usuario" property="nombre" /></p>
 	<form action="index.html" method="get">
 	<input type="submit" value="volver">
 	</form>

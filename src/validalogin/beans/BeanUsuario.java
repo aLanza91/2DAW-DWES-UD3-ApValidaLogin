@@ -31,6 +31,12 @@ public class BeanUsuario implements Serializable{
 		this.clave = "";
 		this.nombre = "";
 	}
+	
+	public BeanUsuario(String login,String clave, String nombre) {
+		this.login = login;
+		this.clave = clave;
+		this.nombre = nombre;
+	}
 
 	/**
 	 * Devuelve el login
