@@ -1,15 +1,18 @@
 # 2DAW-DWES-UD3-ApValidaLogin
 
 
+Datasource:
 
-<datasource jta="true" jndi-name="java:jboss/datasources/dsbdvalidalogin" pool-name="dsbdvalidalogin" enabled="true" use-java-context="true" use-ccm="true">
+	<datasource jta="true" jndi-name="java:jboss/datasources/dsbdvalidalogin" pool-name="dsbdvalidalogin" enabled="true" use-java-context="true" use-ccm="true">
                     <connection-url>jdbc:mysql://localhost:3306/logins</connection-url>
                     <driver>mysql5</driver>
                     <security>
                         <user-name>root</user-name>
                         <password>mysql</password>
                     </security>
-</datasource>
+	</datasource>
+
+Base de datos:
 
 DROP DATABASE IF EXISTS logins;
  CREATE DATABASE logins;
