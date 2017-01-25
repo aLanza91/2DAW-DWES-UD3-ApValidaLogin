@@ -1,14 +1,13 @@
 package validalogin.servlet;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -16,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import validalogin.bbdd.BeanDao;
 import validalogin.beans.BeanError;
 import validalogin.beans.BeanUsuario;
 
@@ -32,14 +32,14 @@ public class RegistraLogin extends HttpServlet{
 	private DataSource dsBdValidaLogin;
 	
 	/**
-	 * Información del posible error generado
+	 * Informa si la aplicación se encuentra operativa
 	 */
-	private BeanError error;
+	private boolean appOperativa = true;
 	
 	/**
-	 * Información del usuario
+	 * Objeto encargado e la comunicación con la base de datos
 	 */
-	private BeanUsuario usuario;
+	private BeanDao beanDao;
 	
 	/**
 	 * Constructor por defecto
@@ -53,13 +53,16 @@ public class RegistraLogin extends HttpServlet{
 	 */
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
+    	ServletContext application = config.getServletContext();
+    	String urlDataSource = (String) application.getInitParameter("URLDataSource");
     	InitialContext initCtx = null;
 		try {
 			initCtx = new InitialContext();
-			this.dsBdValidaLogin = (DataSource) initCtx.lookup("java:jboss/datasources/dsbdvalidalogin");
+			this.dsBdValidaLogin = (DataSource) initCtx.lookup(urlDataSource);
 		} catch (NamingException e) {
-			error = new BeanError(1,"Error en conexión a base de datos");
+			appOperativa = false;
     	}
+		beanDao = new BeanDao(dsBdValidaLogin);
 	}
 	
 	/**
@@ -70,42 +73,36 @@ public class RegistraLogin extends HttpServlet{
 	}
 	
 	/**
-	 * Recibe las peticiones POST, realiza la consulta a la bb.dd. y devuelve una respuesta
+	 * Recibe las peticiones POST, comprueba si la bb.dd está funcionando, llama al método del Dao correspondiente
+	 * y devuelve la respuesta al usuario.
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		Connection conexion = null;
-		Statement st = null;
-		String login = request.getParameter("login");
-		String clave = request.getParameter("clave");
-		String nombre = request.getParameter("nombre");
-		error = null;
-		usuario = new BeanUsuario();
-		usuario.setClave(clave);
-		usuario.setLogin(login);
-		usuario.setNombre(nombre);
-		request.setAttribute("usuario", usuario);
-		try {
-			conexion = dsBdValidaLogin.getConnection();
-			st = conexion.createStatement();
-			String insert = "INSERT INTO login (login,clave,nombre) VALUES ('" + usuario.getLogin() + "','" +
-	                usuario.getClave() + "','" + usuario.getNombre() + "')";
-	        st.executeUpdate(insert);
-		} catch (SQLException e) {
-			error = new BeanError(e.getErrorCode(),e.getMessage());
-		}
-		if (st != null){
+		BeanUsuario usuario = null;
+		BeanError error = null;
+		//Comprueba si la aplicación puede funcionar.
+		if (!appOperativa){
+			error = new BeanError(0,"La aplicación no se encuentra operativa en este momento, intentelo más tarde.");
+			request.setAttribute("error", error);
+			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/gesError.jsp");
+		    rd.forward(request,response);
+		} else{
 			try {
-				conexion.close();
+				beanDao.getConexion();
+				beanDao.setUsuario(request);
+				beanDao.close();
 			} catch (SQLException e) {
-				error = new BeanError(4,"Error al cerrar conexión a base de datos");
+				error = new BeanError(1,"Error en conexión a base de datos");
+			} catch (BeanError e){
+				error = e;
 			}
 		}
-		//Se comprueba si se ha producido algún error para devolver la imforción pertinente
+		//Se comprueba si se ha producido algún error para devolver la información pertinente
 		if (error==null){
 			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/verRegistro.jsp");
 			rd.forward(request,response);
 		} else {
 			request.setAttribute("error", error);
+			request.setAttribute("nombre", request.getParameter("nombre"));
 			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/gesError.jsp");
 		    rd.forward(request,response);
 		}

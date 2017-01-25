@@ -23,15 +23,21 @@ import validalogin.bbdd.*;
 @SuppressWarnings("serial")
 public class ValidaLogin extends HttpServlet{
 	
-	private String urlDataSource;
 	/**
 	 * Información de la Base de datos
 	 */
 	private DataSource dsBdValidaLogin;
 	
+	/**
+	 * Informa si la aplicación se encuentra operativa
+	 */
 	private boolean appOperativa = true;
 	
-	private Dao dao;
+	/**
+	 * Objeto encargado e la comunicación con la base de datos
+	 */
+	
+	private BeanDao beanDao;
 	
 	/**
 	 * Constructor por defecto
@@ -46,7 +52,7 @@ public class ValidaLogin extends HttpServlet{
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
     	ServletContext application = config.getServletContext();
-    	urlDataSource = (String) application.getInitParameter("URLDataSource");
+    	String urlDataSource = (String) application.getInitParameter("URLDataSource");
     	InitialContext initCtx = null;
 		try {
 			initCtx = new InitialContext();
@@ -54,7 +60,7 @@ public class ValidaLogin extends HttpServlet{
 		} catch (NamingException e) {
 			appOperativa = false;
     	}
-		dao = new Dao(dsBdValidaLogin);
+		beanDao = new BeanDao(dsBdValidaLogin);
 		
 	}
 	
@@ -66,13 +72,13 @@ public class ValidaLogin extends HttpServlet{
 	}
 	
 	/**
-	 * Recibe las peticiones POST, realiza la consulta a la bb.dd. y devuelve una respuesta
-	 * @throws IOException 
-	 * @throws ServletException 
+	 * Recibe las peticiones POST, comprueba si la bb.dd está funcionando, llama al método del Dao correspondiente
+	 * y devuelve la respuesta al usuario.
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BeanUsuario usuario = null;
 		BeanError error = null;
+		//Comprueba si la aplicación puede funcionar.
 		if (!appOperativa){
 			error = new BeanError(0,"La aplicación no se encuentra operativa en este momento, intentelo más tarde.");
 			request.setAttribute("error", error);
@@ -80,16 +86,16 @@ public class ValidaLogin extends HttpServlet{
 		    rd.forward(request,response);
 		} else{
 			try {
-				dao.getConexion();
-				usuario=dao.getUsuario(request);
-				dao.close();
+				beanDao.getConexion();
+				usuario=beanDao.getUsuario(request);
+				beanDao.close();
 			} catch (SQLException e) {
 				error = new BeanError(1,"Error en conexión a base de datos");
 			} catch (BeanError e){
 				error = e;
 			}
 		}
-		//Se comprueba si se ha producido algún error para devolver la imforción pertinente
+		//Se comprueba si se ha producido algún error para devolver la información pertinente
 		if (error==null){
 			request.setAttribute("usuario", usuario);
 			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/verUsuario.jsp");
@@ -97,6 +103,7 @@ public class ValidaLogin extends HttpServlet{
 		
 		} else {
 			request.setAttribute("error", error);
+			request.setAttribute("nombre", "");
 			RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/gesError.jsp");
 		    rd.forward(request,response);
 		}

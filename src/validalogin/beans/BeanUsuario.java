@@ -11,7 +11,7 @@ public class BeanUsuario implements Serializable{
 	/**
 	 * Información del login
 	 */
-	private String login;
+	private String usuario;
 	
 	/**
 	 * Información de la clave
@@ -27,13 +27,19 @@ public class BeanUsuario implements Serializable{
 	 * Constructor por defecto
 	 */
 	public BeanUsuario() {
-		this.login = "";
+		this.usuario = "";
 		this.clave = "";
 		this.nombre = "";
 	}
 	
-	public BeanUsuario(String login,String clave, String nombre) {
-		this.login = login;
+	/**
+	 * Constructor con parámetros
+	 * @param usuario
+	 * @param clave
+	 * @param nombre
+	 */
+	public BeanUsuario(String usuario,String clave, String nombre) {
+		this.usuario = usuario;
 		this.clave = clave;
 		this.nombre = nombre;
 	}
@@ -42,16 +48,16 @@ public class BeanUsuario implements Serializable{
 	 * Devuelve el login
 	 * @return String login
 	 */
-	public String getLogin() {
-		return login;
+	public String getUsuario() {
+		return usuario;
 	}
 
 	/**
 	 * Establece el login
 	 * @param login
 	 */
-	public void setLogin(String login) {
-		this.login = login;
+	public void setUsuario(String usuario) {
+		this.usuario = usuario;
 	}
 
 	/**
